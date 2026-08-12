@@ -1,6 +1,7 @@
 # 客戶來源資料與產出，一律不進版控
 /context/
 /output/
+/Data/
 
 # 本機設定
 /.claude/settings.local.json
