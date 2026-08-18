@@ -68,9 +68,16 @@ mukul975/anthropic-cybersecurity-skills@analyzing-...-abuse   466 installs
    若這台機器的主控台編碼是 cp950（繁體中文 Windows 常見），內容裡只要帶 emoji
    （`🛑`、`⚠️`、`✅` 這類，skills.sh 上的技能說明很常用），`print()` 要把 Unicode
    字串編碼回 cp950 寫進終端機時會直接丟 `UnicodeEncodeError` 中斷。改用
-   `python -X utf8 -c "..."`（或設 `PYTHONUTF8=1`），或者根本不印、直接
-   `open('skill.md', 'w', encoding='utf-8').write(content)` 寫成檔案用 Read 工具看，
-   兩者都能避開這個坑。
+   `python -X utf8 -c "..."`（或設 `PYTHONUTF8=1`），或者根本不印、直接寫成檔案用
+   Read 工具看，兩者都能避開這個坑。
+
+   **這份抓下來的內容只是評估用的暫存稿，不是要交付給這個專案的東西。**
+   寫檔案時要寫到系統的 scratch／temp 目錄（例如 Bash 環境提供的 scratchpad 路徑），
+   **絕不能寫進正在建置的專案目錄**——之前真實發生過的事故：評估階段抓的
+   `xxx_SKILL.md` 檔案被直接寫進專案根目錄下，變成使用者看到的一堆多餘雜訊檔，
+   而且這些檔案既不是「已安裝」也不是「建議安裝」的正式產出，只會讓人誤以為
+   技能已經裝好了。看完就算讀完，不需要保留；步驟 5 交付前自我檢查要確認
+   專案目錄裡沒有殘留這類暫存檔。
 3. **領域要真的對得上**。搜 `backup` 會回傳 `googleworkspace/cli@recipe-backup-sheet-as-csv`
    這種只是字面命中的東西。對不上就不要列。
 4. **一個缺口最多建議 2 個**，附 URL 讓人自己判斷。列一長串等於沒有篩選。
