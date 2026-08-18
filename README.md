@@ -2,7 +2,10 @@
 
 給 Claude Code 用的 Agent Skills 倉庫。
 
-目前收錄一個技能：**[create-agents](skills/create-agents/)** — 把工時估算表轉成該專案專用的 `AGENTS.md` 與 `progress.md`。
+目前收錄兩個技能：
+
+- **[create-agents](skills/create-agents/)** — 把工時估算表轉成該專案專用的 `AGENTS.md` 與 `progress.md`。
+- **[read-excel](skills/read-excel/)** — 快速、唯讀讀取任意 .xlsx／.xlsm 檔案內容，`create-agents` 讀取非工時估算表結構的 Excel 檔案時會用到，安裝 `create-agents` 時會一併安裝。
 
 ---
 
@@ -35,15 +38,44 @@
 
 ---
 
+## read-excel
+
+### 解決什麼問題
+
+直接把 .xlsx（其實是 zip + XML）當文字讀，拿不到人看得懂的內容；用完整的試算表編輯工具處理「只是想看資料」的需求又太重、太慢，尤其是活頁簿很大、工作表很多，或合併儲存格讓資料看起來像缺漏的時候。
+
+`read-excel` 是一支唯讀、只管把格線資料忠實搬出來的小工具：不猜欄位語意、不假設任何表格結構，也不修改檔案。`create-agents` 讀取工時估算表以外的 Excel（客戶確認表、資產清單⋯）時就是靠它。
+
+```bash
+# 先看活頁簿有幾個工作表、各自多大
+python skills/read-excel/scripts/read_excel.py <file.xlsx> --list-sheets
+
+# 傾印指定工作表（預設 Markdown、展開合併儲存格、最多 500 列）
+python skills/read-excel/scripts/read_excel.py <file.xlsx> --sheet <name>
+
+# 結構化輸出，供程式接續處理
+python skills/read-excel/scripts/read_excel.py <file.xlsx> --format json --out out.json
+```
+
+細節與參數說明見 [skills/read-excel/SKILL.md](skills/read-excel/SKILL.md)。
+
+---
+
 ## 安裝
 
 ### 方法 1：npx（推薦）
 
 ```bash
-npx skills add https://github.com/joshlee1127/my-skills.git
+npx skills add https://github.com/joshlee1127/my-skills.git -s create-agents,read-excel
 ```
 
-安裝到 `~/.claude/skills/`。之後要更新重跑同一行即可。
+`-s create-agents,read-excel` 確保兩個技能一起裝進來——`create-agents` 讀取非估算表結構的 Excel 檔案時會呼叫 `read-excel`，少裝了會在執行到那一步時失敗。安裝到 `~/.claude/skills/`，之後要更新重跑同一行即可。
+
+只想單獨試 `read-excel`（跟工時估算表無關的場合也能用）可以只裝它：
+
+```bash
+npx skills add https://github.com/joshlee1127/my-skills.git -s read-excel
+```
 
 ### 方法 2：clone + 符號連結
 
@@ -59,12 +91,16 @@ git clone https://github.com/joshlee1127/my-skills.git
 New-Item -ItemType SymbolicLink `
   -Path "$env:USERPROFILE\.claude\skills\create-agents" `
   -Target "<clone 路徑>\skills\create-agents"
+New-Item -ItemType SymbolicLink `
+  -Path "$env:USERPROFILE\.claude\skills\read-excel" `
+  -Target "<clone 路徑>\skills\read-excel"
 ```
 
 **macOS / Linux**：
 
 ```bash
 ln -s "$(pwd)/skills/create-agents" ~/.claude/skills/create-agents
+ln -s "$(pwd)/skills/read-excel" ~/.claude/skills/read-excel
 ```
 
 ### 方法 3：直接複製
@@ -72,7 +108,7 @@ ln -s "$(pwd)/skills/create-agents" ~/.claude/skills/create-agents
 不想處理符號連結權限就複製資料夾：
 
 ```bash
-cp -r skills/create-agents ~/.claude/skills/
+cp -r skills/create-agents skills/read-excel ~/.claude/skills/
 ```
 
 ### 需求
@@ -152,15 +188,19 @@ csv 或格式古怪到解不動的表，技能會改用人工整理，但仍會�
 ```
 my-skills/
 ├── skills/create-agents/
-│   ├── SKILL.md                      # 主流程（7 步）+ 欄位→節次對照 + 交付前檢查
+│   ├── SKILL.md                      # 主流程（8 步）+ 欄位→節次對照 + 交付前檢查
 │   ├── scripts/
-│   │   ├── read_estimate.py          # 估算表 → JSON / 大綱
+│   │   ├── read_estimate.py          # 估算表 → JSON / 大綱（工時估算表專用，懂欄位語意）
 │   │   └── init_progress.py          # 估算表 → progress.md（可安全重跑）
 │   ├── references/
 │   │   ├── agents-md-sections.md     # 12 節逐節撰寫指引，含好／壞對照
 │   │   └── skill-mapping.md          # §3 技能對應原則
 │   └── assets/
 │       └── AGENTS.template.md        # 12 節骨架範本
+├── skills/read-excel/
+│   ├── SKILL.md                      # 唯讀讀取任意 .xlsx／.xlsm，不假設表格結構
+│   └── scripts/
+│       └── read_excel.py             # 列工作表 / 傾印內容（md／json）/ 展開合併儲存格
 ├── output/                           # 範例估算表
 └── context/                          # 專案來源資料（不進版控）
 ```

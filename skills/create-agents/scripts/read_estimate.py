@@ -71,12 +71,18 @@ def normalize_multiline(text):
 
 
 def find_header_row(ws, max_scan=15):
-    """找出標題列：第一列同時出現「作業項目」類與其他已知欄位關鍵字的列。"""
+    """找出標題列：第一列同時出現「作業項目」類與其他已知欄位關鍵字的列。
+
+    關鍵字直接取自 COLUMN_PATTERNS/HOURS_PATTERN，避免這裡另外維護一份字面
+    清單、跟欄位比對邏輯本身的關鍵字表脫節（例如新增了同義詞卻漏改這裡）。
+    """
+    task_keywords = next(kws for key, kws in COLUMN_PATTERNS if key == "task")
+    other_keywords = [kw for key, kws in COLUMN_PATTERNS if key != "task" for kw in kws]
     for row in ws.iter_rows(min_row=1, max_row=min(ws.max_row, max_scan)):
         texts = [cell_text(c.value) for c in row]
         joined = " ".join(texts)
-        if any(k in joined for k in ("作業項目", "工作項目")) and any(
-            k in joined for k in ("項目分類", "項次", "備註", "工時", "L1", "L2")
+        if any(k in joined for k in task_keywords) and (
+            any(k in joined for k in other_keywords) or HOURS_PATTERN.search(joined)
         ):
             return row[0].row, texts
     return None, None
