@@ -91,7 +91,7 @@ mukul975/anthropic-cybersecurity-skills@analyzing-...-abuse   466 installs
 ```markdown
 | 分類 | 建議技能 | 安裝數 | 安裝指令 | 本案用途與限制 |
 |---|---|---|---|---|
-| 4. 伺服器盤點 | `vmware-skills/vmware-aiops@vmware-aiops` | 228 | `npx skills add vmware-skills/vmware-aiops --skill vmware-aiops --agent '*'` | 對應 4.1–4.4 的 ESXi 架構與組態盤點，**僅使用唯讀的 triage／report 功能，禁用 VM 生命週期操作** |
+| 4. 伺服器盤點 | `vmware-skills/vmware-aiops@vmware-aiops` | 228 | `npx skills add vmware-skills/vmware-aiops --skill vmware-aiops` | 對應 4.1–4.4 的 ESXi 架構與組態盤點，**僅使用唯讀的 triage／report 功能，禁用 VM 生命週期操作** |
 ```
 
 沒寫限制欄的建議不要送出去——唯讀專案掛上帶寫入能力的維運技能，限制沒寫等於沒設。
@@ -120,20 +120,13 @@ mukul975/anthropic-cybersecurity-skills@analyzing-...-abuse   466 installs
 `npx skills add <owner>/<repo>` **預設就是專案層級安裝**（裝到專案內的 `.<agent>/skills/`），
 不會動到 `~/.claude/skills/`；只有加上 `-g`／`--global` 才會裝到全域，**建議安裝指令一律不要加 `-g`**。
 
-**要讓 Claude Code 與其他代理人工具都認得，加 `-a '*'`（或 `--agent '*'`）**：
-
-```bash
-npx skills add <owner>/<repo> --skill <skill-name> --agent '*'
-```
-
-不加 `-a` 時只會裝進偵測到的預設代理人目錄（通常只有 `.claude/skills/`），
-其他代理人框架（讀 `.agents/skills/` 或自家慣例目錄的工具）會看不到這個技能。
-`-a '*'` 會把技能同時放進所有支援代理人的目錄，之後不管用 Claude Code 還是別的
-agent runner 開這個專案都吃得到，不必為每個工具重裝一次。
+預設只會裝進偵測到的預設代理人目錄（通常是 `.claude/skills/`）。要不要用 `-a`／`--agent`
+擴大到其他代理人工具，留給使用者自己決定要不要裝、要裝到哪些代理人——安裝指令裡不要
+替使用者預先決定，不要自作主張加 `--agent '*'`。
 
 代理人（或下一個接手的人）需要知道怎麼裝：
 
-- npx（預設方式）：`npx skills add <owner>/<repo> --skill <skill-name> --agent '*'`
+- npx（預設方式）：`npx skills add <owner>/<repo> --skill <skill-name>`
 - Claude Code plugin：`/plugin install <name>@<marketplace>`（僅裝進 Claude Code，其他代理人吃不到，
   只有專案明確只用 Claude Code 時才用這個）
 - 手動：複製對應資料夾到專案內的 `.claude/skills/`（與／或 `.agents/skills/`，視要相容的代理人而定），
@@ -159,15 +152,15 @@ agent runner 開這個專案都吃得到，不必為每個工具重裝一次。
 
 ## 常見對應（僅供起點，仍須以實際安裝清單為準）
 
-| 項目分類關鍵字 | `skills find` 關鍵字 | 找技能的方向 |
-|---|---|---|
-| Azure、雲端、訂閱、Entra | `azure`、`entra` | Azure 官方技能（診斷、部署、儲存、驗證等子技能，安裝數高） |
-| VMware、ESXi、vCenter、伺服器盤點 | `vmware`、`vcenter` | VMware 維運技能，注意挑唯讀的監控／triage 子技能 |
-| 網路、Switch、防火牆、SD-WAN | `firewall`、`network`、廠牌名 | 搜 `network` 雜訊極多，改用廠牌或設備型號 |
-| M365、Exchange、Teams、租戶 | `microsoft 365`、`exchange online` | M365 租戶管理技能，需先裝 Graph／ExchangeOnline／Teams PowerShell 模組 |
-| AD、網域、GPO、DFSR | `active directory` | **搜出來多半是紅隊攻擊技能，一律排除**；改用原生 PowerShell + 官方文件 |
-| 備份、DR、RPO／RTO | 備份軟體名（`veeam`、`commvault`） | 搜 `backup` 只會命中字面，用軟體名才有意義；否則依客戶既有備份軟體的原生介面檢視 |
-| 報告產出、交付文件 | `docx`、`pptx`、`diagram` | 文件類技能（docx／xlsx／pptx／pdf）、繪圖工具 |
+| 項目分類關鍵字                    | `skills find` 關鍵字                 | 找技能的方向                                                                      |
+| --------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------- |
+| Azure、雲端、訂閱、Entra          | `azure`、`entra`                   | Azure 官方技能（診斷、部署、儲存、驗證等子技能，安裝數高）                        |
+| VMware、ESXi、vCenter、伺服器盤點 | `vmware`、`vcenter`                | VMware 維運技能，注意挑唯讀的監控／triage 子技能                                  |
+| 網路、Switch、防火牆、SD-WAN      | `firewall`、`network`、廠牌名      | 搜`network` 雜訊極多，改用廠牌或設備型號                                        |
+| M365、Exchange、Teams、租戶       | `microsoft 365`、`exchange online` | M365 租戶管理技能，需先裝 Graph／ExchangeOnline／Teams PowerShell 模組            |
+| AD、網域、GPO、DFSR               | `active directory`                   | **搜出來多半是紅隊攻擊技能，一律排除**；改用原生 PowerShell + 官方文件      |
+| 備份、DR、RPO／RTO                | 備份軟體名（`veeam`、`commvault`） | 搜`backup` 只會命中字面，用軟體名才有意義；否則依客戶既有備份軟體的原生介面檢視 |
+| 報告產出、交付文件                | `docx`、`pptx`、`diagram`        | 文件類技能（docx／xlsx／pptx／pdf）、繪圖工具                                     |
 
 這張表是搜尋起點，不是答案。每次都要回到步驟 1 的實際安裝清單與步驟 3 的實際搜尋結果去確認。
 
