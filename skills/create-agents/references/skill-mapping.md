@@ -75,7 +75,7 @@ mukul975/anthropic-cybersecurity-skills@analyzing-...-abuse   466 installs
 ```markdown
 | 分類 | 建議技能 | 安裝數 | 安裝指令 | 本案用途與限制 |
 |---|---|---|---|---|
-| 4. 伺服器盤點 | `vmware-skills/vmware-aiops@vmware-aiops` | 228 | `npx skills add vmware-skills/vmware-aiops` | 對應 4.1–4.4 的 ESXi 架構與組態盤點，**僅使用唯讀的 triage／report 功能，禁用 VM 生命週期操作** |
+| 4. 伺服器盤點 | `vmware-skills/vmware-aiops@vmware-aiops` | 228 | `npx skills add vmware-skills/vmware-aiops --skill vmware-aiops --agent '*'` | 對應 4.1–4.4 的 ESXi 架構與組態盤點，**僅使用唯讀的 triage／report 功能，禁用 VM 生命週期操作** |
 ```
 
 沒寫限制欄的建議不要送出去——唯讀專案掛上帶寫入能力的維運技能，限制沒寫等於沒設。
@@ -96,11 +96,32 @@ mukul975/anthropic-cybersecurity-skills@analyzing-...-abuse   466 installs
 
 ### 5. 需要安裝時，把安裝方式寫進去
 
+**裝進專案目錄，不要裝進使用者家目錄。** `~/.claude/skills/` 是全域安裝，裝進去只有
+這台機器、這個使用者能用；健檢／導入類專案通常是團隊共用一份 repo，技能要跟著專案走、
+進版控（或至少讓下一個接手的人 `npx skills add` 一次就拿到同一批），裝到 `~/` 底下等於
+只有裝的人自己能跑，換一台機器或換一個人就斷link。
+
+`npx skills add <owner>/<repo>` **預設就是專案層級安裝**（裝到專案內的 `.<agent>/skills/`），
+不會動到 `~/.claude/skills/`；只有加上 `-g`／`--global` 才會裝到全域，**建議安裝指令一律不要加 `-g`**。
+
+**要讓 Claude Code 與其他代理人工具都認得，加 `-a '*'`（或 `--agent '*'`）**：
+
+```bash
+npx skills add <owner>/<repo> --skill <skill-name> --agent '*'
+```
+
+不加 `-a` 時只會裝進偵測到的預設代理人目錄（通常只有 `.claude/skills/`），
+其他代理人框架（讀 `.agents/skills/` 或自家慣例目錄的工具）會看不到這個技能。
+`-a '*'` 會把技能同時放進所有支援代理人的目錄，之後不管用 Claude Code 還是別的
+agent runner 開這個專案都吃得到，不必為每個工具重裝一次。
+
 代理人（或下一個接手的人）需要知道怎麼裝：
 
-- Claude Code plugin：`/plugin install <name>@<marketplace>`
-- npx：`npx skills add <owner>/<repo>`
-- 手動：複製對應資料夾到 `~/.claude/skills/`
+- npx（預設方式）：`npx skills add <owner>/<repo> --skill <skill-name> --agent '*'`
+- Claude Code plugin：`/plugin install <name>@<marketplace>`（僅裝進 Claude Code，其他代理人吃不到，
+  只有專案明確只用 Claude Code 時才用這個）
+- 手動：複製對應資料夾到專案內的 `.claude/skills/`（與／或 `.agents/skills/`，視要相容的代理人而定），
+  不要複製到 `~/.claude/skills/`
 
 不確定安裝方式就不要瞎編指令——寫「見來源 repo 的安裝說明」並附連結。
 
