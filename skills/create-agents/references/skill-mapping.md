@@ -62,6 +62,15 @@ mukul975/anthropic-cybersecurity-skills@analyzing-...-abuse   466 installs
    `red-team`、`hack`、`bughunter`。健檢是去看客戶環境，不是去打它。
 2. **讀過 SKILL.md 才建議**。安裝數只代表流行度，不代表適用，也不代表唯讀。
    看它提供的動作有沒有寫入語意；有的話照「破壞性功能」那段在建議欄點名禁用。
+
+   **Windows 上抓取內容時不要用 `print()` 直接印到終端機。** 例如用
+   `gh api repos/<owner>/<repo>/contents/<path>/SKILL.md` 抓內容、base64 解碼後想看一眼，
+   若這台機器的主控台編碼是 cp950（繁體中文 Windows 常見），內容裡只要帶 emoji
+   （`🛑`、`⚠️`、`✅` 這類，skills.sh 上的技能說明很常用），`print()` 要把 Unicode
+   字串編碼回 cp950 寫進終端機時會直接丟 `UnicodeEncodeError` 中斷。改用
+   `python -X utf8 -c "..."`（或設 `PYTHONUTF8=1`），或者根本不印、直接
+   `open('skill.md', 'w', encoding='utf-8').write(content)` 寫成檔案用 Read 工具看，
+   兩者都能避開這個坑。
 3. **領域要真的對得上**。搜 `backup` 會回傳 `googleworkspace/cli@recipe-backup-sheet-as-csv`
    這種只是字面命中的東西。對不上就不要列。
 4. **一個缺口最多建議 2 個**，附 URL 讓人自己判斷。列一長串等於沒有篩選。
