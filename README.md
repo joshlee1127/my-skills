@@ -4,7 +4,7 @@
 
 目前收錄兩個技能：
 
-- **[create-agents](skills/create-agents/)** — 把工時估算表轉成該專案專用的 `AGENTS.md` 與 `progress.md`。
+- **[create-agents](skills/create-agents/)** — 把工時估算表轉成該專案專用的 `AGENTS.md` 與 `progress.md`，並補一份 `CLAUDE.md`（匯入 `AGENTS.md`）讓 Claude Code 也讀得到同一份邊界。
 - **[read-excel](skills/read-excel/)** — 快速、唯讀讀取任意 .xlsx／.xlsm 檔案內容，`create-agents` 讀取非工時估算表結構的 Excel 檔案時會用到，安裝 `create-agents` 時會一併安裝。
 
 ---
@@ -188,7 +188,7 @@ csv 或格式古怪到解不動的表，技能會改用人工整理，但仍會�
 ```
 my-skills/
 ├── skills/create-agents/
-│   ├── SKILL.md                      # 主流程（8 步）+ 欄位→節次對照 + 交付前檢查
+│   ├── SKILL.md                      # 主流程（9 步）+ 欄位→節次對照 + 交付前檢查
 │   ├── scripts/
 │   │   ├── read_estimate.py          # 估算表 → JSON / 大綱（工時估算表專用，懂欄位語意）
 │   │   └── init_progress.py          # 估算表 → progress.md（可安全重跑）
