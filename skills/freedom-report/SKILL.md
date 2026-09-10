@@ -1,70 +1,48 @@
 ---
 name: freedom-report
-description: Build a branded PowerPoint deck for Freedom Systems (自由系統) using the company's own 自由系統簡報模板_2021.pptx template — its color theme, fonts, cover slide, footer/page numbers, and a large reusable IT/network icon library plus two pre-built network-topology diagram examples. Use this whenever the user asks to make a "自由報告", "自由系統簡報", client-facing 交付簡報/健檢報告簡報, an internal PPTX deck, or any presentation that should carry Freedom Systems branding — even if they just say "做一份簡報" or "output this as a deck" in a project that is clearly a Freedom Systems client engagement. Also use it when the user wants to draw a network/architecture topology diagram in PowerPoint and mentions reusing existing icons rather than drawing shapes from scratch.
+description: 用自由系統自己的 自由系統簡報模板_2021.pptx 模板產出帶品牌的 PowerPoint 簡報——套用其配色主題、字型、封面、頁尾／頁碼，以及一整套可重複使用的 IT/網路圖示庫，外加兩張已畫好的網路拓樸圖範例。當使用者要求做「自由報告」「自由系統簡報」、客戶交付簡報／健檢報告簡報、內部 PPTX 簡報，或任何應該帶有自由系統品牌的簡報時都要用這個技能——即使他們只是在明顯是自由系統客戶案的專案裡說「做一份簡報」或「output this as a deck」。當使用者想在 PowerPoint 裡畫網路/架構拓樸圖，並提到要重複利用既有圖示而非從頭畫圖案時，也用這個技能。
 ---
 
-# Freedom Report (自由系統簡報)
+# Freedom Report（自由系統簡報）
 
-Builds decks on top of `assets/自由系統簡報模板_2021.pptx` — the company's real branded
-PowerPoint file, not a generic template. It ships two kinds of reusable material that are
-easy to miss if you only skim it as a "6-slide deck":
+在 `assets/自由系統簡報模板_2021.pptx` 上產出簡報——這是公司真實的品牌化 PowerPoint 檔案，不是通用模板。它其實藏著兩種可重複利用的素材，只把它當成「6 頁簡報」隨手翻過去很容易漏看：
 
-1. A full Office theme with ~38 slide layouts (cover, section header, content, two-content,
-   comparison, blank, picture layouts…) already carrying Freedom Systems' color palette, fonts,
-   footer (`© Freedom Systems Inc.`) and auto page numbers.
-2. Six pre-built slides that are themselves assets: a cover, a company-intro/closing slide, a
-   large IT/network icon library (servers, firewalls, switches, NAS, AD servers, wireless APs,
-   data centers…), and two full network-topology diagram examples.
+1. 一整套完整的 Office 佈景主題，共兩組 master、約 38 個 layout（封面、章節標題、內容、兩個內容、比較、空白、圖文版面……），已經套好自由系統的配色、字型、頁尾（`© Freedom Systems Inc.`）與自動頁碼。
+2. 檔案本身既有的 6 頁投影片，這些投影片本身就是素材：一張封面、一張公司介紹／結尾頁、一整頁大型 IT/網路圖示庫（伺服器、防火牆、交換器、NAS、AD 伺服器、無線基地台、資料中心……），以及兩張完整的網路拓樸圖範例。
 
-Read `references/template_map.md` before touching the file — it maps exactly which slide index
-is which, and which layout names exist, so you don't have to re-discover this by hand each time.
+動手改檔案前先讀 `references/template_map.md`——它精確列出哪個投影片索引對應什麼內容、有哪些 layout 名稱，不用每次都自己重新翻找一遍。
 
-## Why script it instead of hand-editing
+## 從資料來源到投影片內容
 
-python-pptx can't merge two `.pptx` files or copy a layout across presentations. The only way to
-get Freedom Systems branding onto new content is to start from a **copy of the template file
-itself** and add/edit/delete slides inside that one file — never build a blank deck and try to
-import the theme in afterward, and never edit the template's own copy under this skill's
-`assets/` folder (copy it into the working directory first).
+套版面之前，內容本身要先經過這段分析流程——不要拿到來源就直接倒進投影片：
 
-## Workflow
+1. **讀完使用者提供的全部資料來源**（健檢報告、會議記錄、客戶文件、貼上的筆記等），不要只看一部分就動手。
+2. **看不懂或資訊不足的地方要追問，不要腦補**。來源裡含糊不清、缺上下文、專有名詞不確定所指、數字或結論來源不明的段落，直接列出來問使用者；絕對不要自己猜一個看起來合理的答案填進去——這是要交付給客戶的內容，問一次的成本遠低於猜錯。
+3. **投影片結構跟著來源本身既有的段落／章節走**，不要另外套一個自己想的敘事骨架。來源分幾個主題，內容頁大致就對應分幾份；不要為了讓簡報「看起來完整」而新增來源裡沒有的段落。
+4. **排除明顯不重要的部分**——版權聲明、重複的目錄、格式雜訊、與這份簡報主題無關的附件說明等——這些可以直接略過，不必逐項確認。
+5. **無法判斷是否重要的段落，一律追問**，不要自行決定刪或留。「這段像是背景資訊，要放進簡報嗎？」永遠比自己拍板刪掉或硬塞進去安全。
+6. 內容範圍與所有存疑處都確認完之後，再進入下面「工作流程」把內容套進模板——內容確認在前，套版面在後，不要邊猜邊做。
 
-1. **Copy the template** into the project's output location (e.g. `doc/07-交付報告/`) under a
-   name that reflects this deliverable — don't overwrite the master copy in `assets/`.
-2. **Inspect before building.** Run `deck_utils.list_layouts()` and `deck_utils.list_slides()`
-   (see docstrings in `scripts/deck_utils.py`) against your working copy, or just read
-   `references/template_map.md` if you already know which layout/slide you need.
-3. **New content slides** — use `prs.slides.add_slide(find_layout(prs, "標題及內容"))` (or
-   whichever layout fits the content shape — comparison, two-content, section header, etc.),
-   then `set_placeholder_text()` / `add_bullets()` to fill it in. Match the layout to the content
-   the way you'd pick a Markdown heading level: a section-header layout for a new topic, a
-   two-content layout when you're genuinely presenting two parallel things, not by habit.
-4. **Cover slide** — edit slide 0's title/subtitle placeholders directly rather than adding a new
-   one; it's already positioned and styled.
-5. **Architecture/topology diagrams** — never hand-draw shapes for servers, firewalls, switches,
-   etc. Duplicate one of the two example topology slides (`duplicate_slide()`) if the layout is
-   close to what you need, or start from a blank slide and pull individual icons across with
-   `copy_shape(source_slide, dest_slide, shape_id=...)`, matching by `shape_id` from
-   `list_slides()` output since many icons share the generic name `Shape NNN`.
-6. **Company intro / closing slide** — if the report should end with Freedom Systems'
-   introduction slide, `duplicate_slide()` slide 2 rather than rebuilding it.
-7. **Clean up before delivery** — delete any slide you didn't end up needing (especially the icon
-   library and whichever example topology slide you didn't use) with `delete_slide()`. A
-   client-facing deck should never ship with the icon-library scratch slide still in it.
-8. **Content itself is the user's** — this skill only handles branding/layout mechanics. Pull the
-   actual findings/narrative from whatever source the user points at (a health-check report under
-   `doc/`, notes they paste in, etc.) — never invent figures or findings to fill a slide.
+## 為什麼要用腳本而不是手動編輯
 
-## Reference
+python-pptx 沒辦法合併兩個 `.pptx` 檔案，也沒辦法把一份簡報的 layout 複製到另一份簡報裡。要讓新內容帶上自由系統的品牌，唯一的辦法是**從模板檔案本身的副本開始**，在同一個檔案裡新增／編輯／刪除投影片——絕對不要先造一份空白簡報再想辦法把主題套進去，也絕對不要直接編輯這個技能 `assets/` 資料夾底下的模板本體（先把它複製到工作目錄）。
 
-- `scripts/deck_utils.py` — `list_layouts`, `list_slides`, `find_layout`,
-  `set_placeholder_text`, `add_bullets`, `duplicate_slide`, `delete_slide`, `copy_shape`. Import
-  it directly (`from deck_utils import ...`) from a script placed alongside it, or add its folder
-  to `sys.path`.
-- `references/template_map.md` — which of the 6 shipped slides is which, and the most useful
-  layout names.
-- `assets/自由系統簡報模板_2021.pptx` — the master copy. Copy it; never edit it in place.
+## 工作流程
 
-If a task needs generic PPTX manipulation beyond what's here (tables, charts, transitions), the
-project's `document-skills:pptx` skill covers python-pptx mechanics in more depth — use both
-together rather than duplicating that knowledge here.
+1. **複製模板**到專案的 `reports/` 資料夾下（不存在就建立），檔名要能反映這份交付物是什麼——不要覆寫 `assets/` 裡的母版。
+2. **動手前先盤點。** 對你的工作副本執行 `deck_utils.list_layouts()` 與 `deck_utils.list_slides()`（說明見 `scripts/deck_utils.py` 的 docstring），或者如果已經知道要用哪個 layout／投影片，直接讀 `references/template_map.md` 就好。
+3. **新增內容頁**——用 `prs.slides.add_slide(find_layout(prs, "標題及內容"))`（或依內容形狀挑對應 layout——比較、兩個內容、章節標題等），再用 `set_placeholder_text()` / `add_bullets()` 填內容。挑 layout 的邏輯跟挑 Markdown 標題層級一樣：新主題用章節標題 layout，真的是要並列呈現兩件事才用兩個內容 layout，不要憑習慣亂套。
+4. **封面**——直接改第 0 張投影片的標題／副標題 placeholder，不要另外新增一張；它已經排版定位好了。
+5. **架構／拓樸圖**——絕對不要手畫伺服器、防火牆、交換器之類的圖案。如果版面跟需求接近，複製兩張範例拓樸圖之一（`duplicate_slide()`）當起點；否則從空白投影片開始，用 `copy_shape(source_slide, dest_slide, shape_id=...)` 把個別圖示搬過來——用 `shape_id`（來自 `list_slides()` 輸出）比對，因為很多圖示共用同一個泛用名稱 `Shape NNN`。
+6. **公司介紹／結尾頁**——如果報告最後要附上自由系統的介紹頁，`duplicate_slide()` 第 2 張投影片即可，不要重畫。
+7. **交付前清理**——把最後用不到的投影片（尤其是圖示庫、以及沒用到的那張範例拓樸圖）用 `delete_slide()` 刪掉。客戶交付版絕對不能還留著圖示庫這種工具素材頁。
+8. **內容本身是使用者的**——這個技能只處理品牌／版面的機制。實際的發現／敘事要來自上面「從資料來源到投影片內容」那一輪分析與追問的結果——絕對不要為了填滿投影片而捏造數字或發現。
+
+## 參考資料
+
+- `scripts/deck_utils.py` —— `list_layouts`、`list_slides`、`find_layout`、
+  `set_placeholder_text`、`add_bullets`、`duplicate_slide`、`delete_slide`、`copy_shape`。從跟它放在同一層的腳本裡直接 `from deck_utils import ...` 引入，或把它的資料夾加進 `sys.path`。
+- `references/template_map.md` —— 檔案本身既有的 6 頁投影片各是什麼、以及最常用的 layout 名稱。
+- `assets/自由系統簡報模板_2021.pptx` —— 母版本體。只複製使用，不要直接編輯。
+
+如果任務需要這裡沒涵蓋的通用 PPTX 操作（表格、圖表、轉場），專案裡的 `document-skills:pptx` 技能有更完整的 python-pptx 操作說明——兩者搭配使用，不要在這裡重複那份知識。

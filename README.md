@@ -2,10 +2,11 @@
 
 給 Claude Code 用的 Agent Skills 倉庫。
 
-目前收錄兩個技能：
+目前收錄三個技能：
 
 - **[create-agents](skills/create-agents/)** — 把工時估算表轉成該專案專用的 `AGENTS.md` 與 `progress.md`，並補一份 `CLAUDE.md`（匯入 `AGENTS.md`）讓 Claude Code 也讀得到同一份邊界。
 - **[read-excel](skills/read-excel/)** — 快速、唯讀讀取任意 .xlsx／.xlsm 檔案內容，`create-agents` 讀取非工時估算表結構的 Excel 檔案時會用到，安裝 `create-agents` 時會一併安裝。
+- **[freedom-report](skills/freedom-report/)** — 用自由系統的官方簡報模板產出 PPTX，帶公司配色/字型/頁尾頁碼，以及一整套可重複使用的 IT/網路圖示與兩張拓樸圖範例，用來畫架構圖。與前兩個技能各自獨立，需要另外安裝。
 
 ---
 
@@ -61,6 +62,38 @@ python skills/read-excel/scripts/read_excel.py <file.xlsx> --format json --out o
 
 ---
 
+## freedom-report
+
+### 解決什麼問題
+
+python-pptx 沒辦法合併兩個 `.pptx` 檔案，也沒辦法把一份簡報的佈景主題／版面配置複製到另一份空白簡報裡。要讓輸出的簡報帶有自由系統的配色、字型、頁尾頁碼，唯一的辦法是**從模板檔案本身的副本開始改**，而不是造一份空白簡報再想辦法把主題套進去。
+
+`freedom-report` 就是圍繞這個限制設計的：它把 `assets/自由系統簡報模板_2021.pptx`（公司真實的模板檔）當作起點，附上一批小工具去複製版型、複製投影片、複製單一圖案（像圖示庫裡的伺服器／防火牆圖示），而不是要求每次手刻文字框或重畫圖示。
+
+模板本身有兩層可用資源：
+
+- 完整的 Office 佈景主題，兩組 master、共約 39 個 layout（標題投影片、標題及內容、章節標題、比較、兩個內容⋯），已經套好配色/字型/頁尾/頁碼，新增內容頁就從這裡挑。
+- 檔案裡既有的 6 頁「成品頁」：封面、標題及內容示範頁、公司介紹頁、一整頁的 IT/網路圖示庫（含中文標籤）、以及兩張完整的網路拓樸範例圖，用複製/挪用的方式取用。
+
+```bash
+# 檢視模板有哪些 layout / 既有投影片與圖案 shape_id（在自己的腳本裡 import 使用）
+python -c "
+from deck_utils import list_layouts, list_slides
+list_layouts('自由系統簡報模板_2021.pptx')
+list_slides('自由系統簡報模板_2021.pptx')
+"
+```
+
+細節與工作流程見 [skills/freedom-report/SKILL.md](skills/freedom-report/SKILL.md)，各頁投影片/layout 對照表見 [skills/freedom-report/references/template_map.md](skills/freedom-report/references/template_map.md)。
+
+安裝：
+
+```bash
+npx skills add https://github.com/joshlee1127/my-skills.git -s freedom-report
+```
+
+---
+
 ## 安裝
 
 ### 方法 1：npx（推薦）
@@ -75,6 +108,12 @@ npx skills add https://github.com/joshlee1127/my-skills.git -s create-agents,rea
 
 ```bash
 npx skills add https://github.com/joshlee1127/my-skills.git -s read-excel
+```
+
+`freedom-report` 跟前兩者無關，需要另外裝：
+
+```bash
+npx skills add https://github.com/joshlee1127/my-skills.git -s freedom-report
 ```
 
 ### 方法 2：clone + 符號連結
@@ -94,6 +133,9 @@ New-Item -ItemType SymbolicLink `
 New-Item -ItemType SymbolicLink `
   -Path "$env:USERPROFILE\.claude\skills\read-excel" `
   -Target "<clone 路徑>\skills\read-excel"
+New-Item -ItemType SymbolicLink `
+  -Path "$env:USERPROFILE\.claude\skills\freedom-report" `
+  -Target "<clone 路徑>\skills\freedom-report"
 ```
 
 **macOS / Linux**：
@@ -101,6 +143,7 @@ New-Item -ItemType SymbolicLink `
 ```bash
 ln -s "$(pwd)/skills/create-agents" ~/.claude/skills/create-agents
 ln -s "$(pwd)/skills/read-excel" ~/.claude/skills/read-excel
+ln -s "$(pwd)/skills/freedom-report" ~/.claude/skills/freedom-report
 ```
 
 ### 方法 3：直接複製
@@ -108,16 +151,22 @@ ln -s "$(pwd)/skills/read-excel" ~/.claude/skills/read-excel
 不想處理符號連結權限就複製資料夾：
 
 ```bash
-cp -r skills/create-agents skills/read-excel ~/.claude/skills/
+cp -r skills/create-agents skills/read-excel skills/freedom-report ~/.claude/skills/
 ```
 
 ### 需求
 
 - **Claude Code**（技能本體）
-- **Python 3.8+** 與 **openpyxl**（解析 xlsx 用）：
+- **Python 3.8+** 與 **openpyxl**（解析 xlsx 用，`create-agents`／`read-excel` 需要）：
 
 ```bash
 pip install openpyxl
+```
+
+- **python-pptx**（`freedom-report` 需要，讀寫模板 pptx 用）：
+
+```bash
+pip install python-pptx
 ```
 
 安裝完可以驗一下技能有沒有被認出來——在 Claude Code 執行 `/create-agents`，或直接跑下面的腳本。
@@ -201,6 +250,14 @@ my-skills/
 │   ├── SKILL.md                      # 唯讀讀取任意 .xlsx／.xlsm，不假設表格結構
 │   └── scripts/
 │       └── read_excel.py             # 列工作表 / 傾印內容（md／json）/ 展開合併儲存格
+├── skills/freedom-report/
+│   ├── SKILL.md                      # 從模板副本產出 PPTX 的工作流程
+│   ├── scripts/
+│   │   └── deck_utils.py             # list_layouts / list_slides / find_layout / duplicate_slide / copy_shape 等
+│   ├── references/
+│   │   └── template_map.md           # 模板 6 頁既有投影片 + 常用 layout 名稱對照
+│   └── assets/
+│       └── 自由系統簡報模板_2021.pptx  # 公司官方模板（只複製，不直接編輯）
 ├── output/                           # 範例估算表
 └── context/                          # 專案來源資料（不進版控）
 ```
